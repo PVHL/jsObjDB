@@ -21,6 +21,25 @@ Features include:
 
 ##	Getting Started
 
+### Installation
+
+To include in a web page, copy the source to an appropriate folder, and include in your web page:
+
+```
+    <script src="/jsobjdb.js"></script>
+```
+or
+
+
+```
+    <script src="/jsobjdb.min.js"></script>
+```
+
+Your project must include either lodash or underscore - they are used by the library.
+
+jsObjDB will also work in node.
+
+
 ### Creating a DB
 
 	var db = jsObjDB()
@@ -49,14 +68,14 @@ When an object is stored inside the DB, it will be given a unique reference prop
 
 There are two main ways to insert data - `insertOne` and `insert`.
 	
-`insertOne` returns the object inserted (with its new _ id property), or will throw an exception on failure:
+`insertOne` takes a single object, and returns the object inserted (with its new _ id property), or will throw an exception on failure:
 	
 	var db = jsObjDB("key");
 	var obj = db.insertOne({ a: 1 }); //	exception - required field 'key' missing
 	var obj = db.insertOne({ key: "hi" }); //	fine
 	var obj = db.insertOne({ key: "hi" }); //	exception - duplicate
 	
-`insert` will not throw an exception on failure. Instead it will insert as many objects as possible, and return information about successes via a pair of cursors (`event.inserted`) and failures (`event.failed`).
+`insert` takes an array of objects, and will _not_ throw an exception on failure. Instead it will insert as many objects as possible, and return information about the results via a pair of cursors - `event.inserted` (successes) and `event.failed` (falures).
 
 	var db = jsObjDB("key");
 	var arr = [];
@@ -67,7 +86,7 @@ There are two main ways to insert data - `insertOne` and `insert`.
 	}
 	console.log("Inserted items: %o", ret.inserted);
 	
-`insert` and `insertOne` both accept a callback parameter that will be called on operation completion (unless an exception is raised). The callback may be executed synchronously or asynchronously, depending on the async flag used during DB construction.
+`insert` and `insertOne` both accept a callback parameter that will be called on operation completion (unless an exception is raised). The callback may be executed synchronously or asynchronously, depending on the async flag used during DB construction. See [callbacks](#callbacks).
 
 ### Retrieving Data
 
@@ -235,7 +254,7 @@ Data can also be deleted using a cursor:
 	
 Note that the `db.delete` function _returns an event object_ and not a cursor. The event object is also passed to callbacks and delegates. The event object contains 1 cursor, the set of objects that were deleted, and a set of objects that failed.
 	
-## Callbacks
+## [Callbacks](id:callbacks)
 
 Most DB functions can accept a callback and binding. This callback will be called upon completion of given function/operation.
 

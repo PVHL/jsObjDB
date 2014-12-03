@@ -5,7 +5,7 @@
 
 /**
 * @fileOverview
-* @author Paul Reddy paul@kereru.org
+* @author Paul Reddy (paul@kereru.org), Scott Woods
 * @version 1
 * @requires lodash
 */
