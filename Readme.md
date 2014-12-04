@@ -42,12 +42,12 @@ jsObjDB will also work in node.
 
 ### Creating a DB
 
-	var db = jsObjDB()
+	var db = new jsObjDB()
 
 You can optionally pass in a primary key (a field that must exist, and will be uniquely indexed) and a flag to indicate whether all delegates should be asyncronous.
 
-	var async_db = jsObjDB("myfield", true);
-	var async_db = jsObjDB(null, true);
+	var async_db = new jsObjDB("myfield", true);
+	var async_db = new jsObjDB(null, true);
 	
 The async flag defaults to false (sync operation) and a primary key is not required. The DB has its own internal unique key that is added to objects.
 
@@ -70,14 +70,14 @@ There are two main ways to insert data - `insertOne` and `insert`.
 	
 `insertOne` takes a single object, and returns the object inserted (with its new _ id property), or will throw an exception on failure:
 	
-	var db = jsObjDB("key");
+	var db = new jsObjDB("key");
 	var obj = db.insertOne({ a: 1 }); //	exception - required field 'key' missing
 	var obj = db.insertOne({ key: "hi" }); //	fine
 	var obj = db.insertOne({ key: "hi" }); //	exception - duplicate
 	
 `insert` takes an array of objects, and will _not_ throw an exception on failure. Instead it will insert as many objects as possible, and return information about the results via a pair of cursors - `event.inserted` (successes) and `event.failed` (falures).
 
-	var db = jsObjDB("key");
+	var db = new jsObjDB("key");
 	var arr = [];
 	...		// fill arr with items to be inserted, some of which dont have 'key'.
 	var ret = db.insert(arr);
@@ -93,11 +93,12 @@ There are two main ways to insert data - `insertOne` and `insert`.
 Data can be fetched using queries via search functions - `find`, `findOne` and `findWhere`. (see Query Structure below for more information on the queries themselves).
 
 To return _one_ element that has a field "a" with the value 1:
+	
 	var obj = db.findOne({a: 1});
 
 If there are several elements that match this query - a random one will be returned. If there are no elements matching, then findOne returns null.
 
-To retrieve a number of elements, use find:
+To retrieve a number of elements, use `find` which will return a cursor:
 
 	var cursor = db.find({a: 1});
 or
@@ -128,11 +129,11 @@ or traversed using lodash (or underscore):
 
 A cursor supports chaining, and a large number of sophistocated functions, for example:
 	
-	var cursor = db.find().sort("b").each(function(a) {...}).delete();
+	var cursor = db.find().sort("b").each(function(item) {...}).delete();
 	
 This command will create a cursor representing all elements from the db database (`db.find()`). It then sorts them on the value of the property "b" (`.sort("b")`). It then calls the function on each element, and finally deletes all those elements from `db`.
 
-The variable `cursor` will contain all elements that were deleted. Note that cursors are normally associated with a DB, but after a delete operation, the cursor contains the deleted elements, but they are orphaned (i.e. the no longer exist in the DB).
+The returned value, in variable `cursor`, will contain all elements that were deleted. Note that cursors are normally associated with a DB, but after a delete operation, the cursor contains the deleted elements, but they are orphaned (i.e. the no longer exist in the DB). The cursor itself is no longer associated with a DB.
 
 `findWhere` let you use a function to choose the elements to include in the result set (Cursor). Only items where the function returns true will be included. 
 
@@ -234,7 +235,7 @@ For each item, the DB is scanning using the item's:
 
 If a match is found, the db object is updated using properties for item. If a match is not found, the item will be inserted.
 
-	var db = jsObjDB("a");
+	var db = new jsObjDB("a");
 	//	Note that the second item will fail due to a duplicate key, but others will be inserted.
 	db.insertOne([{ a: 1, b: 2}, { a: 1, b: 3}, { a: 2, b: 6}, { a: 3, b: "hello"});
 	
@@ -270,7 +271,7 @@ Callbacks are passed an event object, which will have one or more of the followi
 
 The callback will be bound to `binding` parameter, or the jsObjDB/Cursor if no binding parameter is provided.
 
-	var db = jsObjDB("b");
+	var db = new jsObjDB("b");
 	db.insertOne({a:1,b:2});
 	db.insertOne({a:2,b:3});
 	db.insertOne({a:3,b:4});
@@ -304,11 +305,9 @@ A Cursor object contains a list of items selected from an jsObjDB. Any function 
 
 This function will sort all elements of the database on `b[4]`, then ensure each possible value of `c` occurs only once, and then return the first. That is, the first() function returns an object and not a cursor.
 
-Cursors usually only contain reference to objects that exist in an jsObjDB. However, if the reference is formed from a delete operation - all of its objects have been removed from their DB, and so the cursor forms their only reference.
+Cursors usually only contain reference to objects that exist in an jsObjDB. However, if the cursor is created during a delete operation - all of its objects will have been removed from their DB, and so the cursor forms their only reference (i.e. they are orphans).
 
-Cursor object is designed for walking (using _.each, or the built in .each)
-and various other chained functions. They are array like objects, supporting
-foreach, [], length.
+Cursor objects are designed for walking (using _.each, or the built in .each) and various other chained functions. They are array like objects, supporting foreach, [], length.
 
 Cursor objects are _not_ created by users - they are automatically created as a way to return sets of data.
 
@@ -337,7 +336,7 @@ Cursors also support the following functions that do not support chaining:
 
 ### Cursor Examples
 
-	var db = jsObjDB();
+	var db = new jsObjDB();
 	...		//	fill with data
 	var deleted = db.find({a:1}).delete();
 	//	deleted holds a cursor with items deleted from db. The cursor is 
@@ -376,8 +375,8 @@ Cursors also support the following functions that do not support chaining:
 
 Cursors also support join operations - where a cursor is joined with a jsObjDB instance on a property. For example:
 
-	var db1 = jsObjDB();
-	var db2 = jsObjDB();
+	var db1 = new jsObjDB();
+	var db2 = new jsObjDB();
 	//	insert a large amount of data
 	var cursor = db1.find({a: 1}).join(db2, "b");
 
@@ -406,7 +405,7 @@ You can create or remove indexes on an jsObjDB at any time. During index constru
 
 Index objects should not be constructed by the user - instead let the jsObjDB instance manage all indexes. You should instead create them with the `addIndex` function on your jsObjDB object.
 	
-	var db = jsObjDB();
+	var db = new jsObjDB();
 	db.addIndex("a");
 	
 Indexes can be created on properties, sub-object properties and arrays. When you index an array, you are actually indexing all elements in the array.
@@ -421,18 +420,18 @@ Indexes can be added and removed at any time. To remove an index, use `removeInd
 	
 Indexes have two properties:
 
-*	__required__: every object that is inserted into this database _must_ have a value for the indexed property
-*	__unique__: every object that is inserted into this database _must_ have a unique value for the indexed property
+*	__required__: every object that is inserted into this database _must_ have a value for the indexed property. Defaults to false;
+*	__unique__: every object that is inserted into this database _must_ have a unique value for the indexed property. Defaults to false.
 
-When you create an jsObjDB, you can provide a primary key - which is simply an index with `required==true` and `unique==true`. It is also used during `upsert` operations, when searching for existing objects.
+When you create an instance of jsObjDB, you can provide a primary key - which is simply an index with `required==true` and `unique==true`. The primary key is also used during `upsert` operations, when searching for existing objects.
 
 Indexes currently only provide speed advantage to $eq, $in, and $contains operators.
 
 ### Efficiency
 
-When executing a query, if there are multiple indexes that could be used, the DB engine looks for an index that partitions the data the most - that is, there are the largest number of unique entries for that column. 
+When executing a query, if there are multiple indexes that could be used, the DB engine chooses the index that will give the greatest speed boost. It does this by looking for the index that partitions the data the most - that is, the index holds the largest number of unique entries for the indexed column. 
 
-Therefore, the best index has a a wide variety of values. 
+This means that the best index has a wide variety of values. 
 
 
 ## Query Structure
@@ -444,7 +443,7 @@ Queries for finds and deletes are very flexible. In general the query has one of
     { property: { $op: value }}
     { property: { $op: value }, ... }
 
-The operators available are:
+The operators (op) available are:
 	
 	in, nin, lt, gt, le, ge, eq, ne, exists, match, contains
 
@@ -454,7 +453,7 @@ Examples:
     { a: { $exists: false }}    // does not have property a
     { "a.b": { $contains: 7 }}    // a.b is an array, and contains 7
     { "a.b": { $contains: 7 }}    // a.b is an array, and contains 7
-    { "a.b": { $in: [1, 5, "a"] }}    // a.b is one of 1, 5, "a"
+    { "a.b": { $in: [1, 5, "a"] }}    // a.b is one of 1, 5 or "a"
     { a: {$eq: 5 }}			//	a == 5
     { a: 5 }				//	a == 5. This is a shorthand for $eq
     { a: { $ge: 5 }, b: 5 }	// a >= 5 and b == 5
@@ -465,11 +464,12 @@ Examples:
 
 Updates require both a query (to select elements to update) and an update (what changes to make to selected elements). The query part is identical to queries for find and delete.
 
-The update part is flexible an permits a large number of modifications to elements. Updates have the following form:
+The update part is flexible and supports a large number of modifications to elements. Updates have the following form:
 
     { property: value }
     { property: value, ... }
     { property: { $op: value }}
+    { property: { $op: value }, ...}
 
 where operators are:
 
@@ -493,7 +493,8 @@ Examples:
 	//	Set a.b[7] to "hello" for all objects
 	db.find().update({ "a.b[7]": {$set: "hello"}});
 
-	//	For all arrays 'a' that contain the value 6... remove it.
+	//	For all items with a property 'a' that is an array, and
+	//	where 'a' contains the value 6... and remove it.
 	db.find({ a: { $contains: 6 }}).update({ a : { $pull: 6}});
 	
 	//	Add 6 to all objects with an array 'a' (if they dont already contain it)
@@ -517,26 +518,57 @@ If an object does not contain a property when an update is being applied to that
 
 ## Delegates
 
-A delegate is a function that _is called on every modification operation_ on a database - be it insert, update, delete or upsert. Delegates are not called on find type operations (find, findOne, findWhere).
+A delegate is a function that is _called on every modification operation_ on a database - be it insert, update, delete or upsert. Delegates are not called on find type operations (find, findOne, findWhere).
 
 Delegates are added to the jsObjDB instance using `addDelegate`:
 
-	var db = jsObjDB("col");
+	var db = new jsObjDB("col");
 	db.addDelegate("id1", function(event) {
 		switch (event.type) {
 		case "insert":
 			console.log(event.inserted);
 			console.log(event.failed);
 			break;
+		case "update":
+			console.log(event.updated);
+			console.log(event.failed);
+			break;
 		...
 		}
 	});
 
-Delegates are a good way to watch for changes to the database, and to react by cascading that change somewhere - such as to the DOM.
+Delegates are called even when the operation happens through a cursor. For example - the above delegate would be called here:
 
+	var cursor = db.find({a: 7});
+	cursor.update({b: 7});
+
+Delegates are a good way to watch for changes to the database, and to react by cascading that change somewhere - such as to the DOM. 
+
+	var db = new jsObjDB("col");
+	db.addDelegate("id1", function(event) {
+		switch (event.type) {
+		case "insert":
+			//	Insert new elements into DOM
+			_.foreach(event.inserted, function(item) { ... });
+			break;
+		case "delete":
+			//	Delete elements from the DOM
+			_.foreach(event.deleted, function(item) { ... });
+			break;
+		case "update":
+			//	Update elements in the DOM
+			_.foreach(event.updated, function(item) { ... });
+			break;
+		case "upsert":
+			//	Update or insert elements in the DOM
+			_.foreach(event.inserted, function(item) { ... });
+			_.foreach(event.updated, function(item) { ... });
+			break;
+	}
+	
 Delegates may be configured to be called synchronously or asynchronously.
 
-	var db = jsObjDB("col", true);	// primary key: col, async: true
+	var db = new jsObjDB("col", true);	// primary key: col, async: true
 	db.addDelegate("id1", function(event) {
 		//	This function will be called asynchronously.
 		if (event.failed.length > 0) {
