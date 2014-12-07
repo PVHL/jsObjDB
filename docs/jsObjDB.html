@@ -114,7 +114,7 @@
 
             <td class="description last">A unique and required key for the data. Is optional. Note that an
                           internal unique field named _id is always created anyway
-                          and can be used for unique indexing if required. Defaults to null.</td>
+                          and can be used for unique indexing if required. Defaults to none.</td>
         </tr>
 
     
@@ -185,7 +185,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line596">line 596</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line595">line 595</a>
     </li></ul></dd>
     
 
@@ -213,8 +213,7 @@
         <h5>Example</h5>
         
     <pre class="prettyprint"><code>var db = jsObjDB();
-var db2 = jsObjDB("user_id", true);
-var db3 = jsObjDB(null, true);</code></pre>
+var db2 = jsObjDB("user_id", true);</code></pre>
 
     
 </dd>
@@ -250,7 +249,7 @@ var db3 = jsObjDB(null, true);</code></pre>
 
     
     <div class="description">
-        Add an index on a single property. Access to items can be sped up
+        Add an index on a single property. Access to items can ben sped up
 *significantly* (although only the $in and $eq operators are currently supported).
 <p>
 You can add indexes at any time, an attempt will be made to insert all existing elements
@@ -395,7 +394,7 @@ chosen for use.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line912">line 912</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line907">line 907</a>
     </li></ul></dd>
     
 
@@ -530,7 +529,7 @@ integer semantics for access.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1447">line 1447</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1442">line 1442</a>
     </li></ul></dd>
     
 
@@ -736,7 +735,7 @@ var itemCount = db.count({a: { $gt: 3 }}); // return count of items with a > 3;<
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1362">line 1362</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1357">line 1357</a>
     </li></ul></dd>
     
 
@@ -898,7 +897,7 @@ db.delete({a: 4}, function(event) {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1612">line 1612</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1607">line 1607</a>
     </li></ul></dd>
     
 
@@ -1108,7 +1107,7 @@ items. That same cursor is also returned and can be used in chained calls.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1473">line 1473</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1468">line 1468</a>
     </li></ul></dd>
     
 
@@ -1293,7 +1292,7 @@ The CB also gets the ITEM. This cannot be changed.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1524">line 1524</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1519">line 1519</a>
     </li></ul></dd>
     
 
@@ -1502,7 +1501,7 @@ during function invocation. Otherwise the jsObjDB is bound.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1591">line 1591</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1586">line 1586</a>
     </li></ul></dd>
     
 
@@ -1708,7 +1707,7 @@ during function invocation. Otherwise the jsObjDB is bound.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line965">line 965</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line960">line 960</a>
     </li></ul></dd>
     
 
@@ -1913,7 +1912,7 @@ Returns the item on success with its _id set.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1003">line 1003</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line998">line 998</a>
     </li></ul></dd>
     
 
@@ -2066,7 +2065,7 @@ call "load" on it - i.e. this is not a constructor.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line645">line 645</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line644">line 644</a>
     </li></ul></dd>
     
 
@@ -2232,7 +2231,7 @@ transmitted.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line662">line 662</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line661">line 661</a>
     </li></ul></dd>
     
 
@@ -2398,7 +2397,7 @@ var db = jsObjDB().loadFromJSON(evt.data);
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line841">line 841</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line838">line 838</a>
     </li></ul></dd>
     
 
@@ -2441,28 +2440,27 @@ var db = jsObjDB().loadFromJSON(evt.data);
         An event handler is a method that is called on *any* change to the DB (insert, update, upsert, delete).
  on("<event>", func(event){});
 where "<event>" is one of:
-<pre>
- // The operations
+ // the set of operations
  update      the update function was called. Will be passed event.updated and event.failed.
  upsert      the upsert function was called. Will be passed event.updated, event.inserted and event.failed
  insert      the insert function was called. Will be passed event.inserted and event.failed
  delete      the delete function was called. Will be passed event.deleted.
- // The changesets
+ // the change sets
  inserted    some records were inserted, however it happened(upsert or insert). Will be passed event.inserted.
  updated     some records were updated. Will be passed event.updated
  deleted     some records were deleted. Will be passed event.deleted
  failed      some event happened, and some records failed. Will be passed event.failed.
  //  wildcard - on any change operation
- all           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
-</pre>
+ *           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
+
 In all cases, the event object will also contain the name of the operation - insert, update, delete, upsert.
-<p>
+
 Change set handlers (inserted, updated, deleted, failed) will *only* be called if there were actually
 changes to the DB. 
-<p>
+
 Operation handlers (insert, update, delete, upsert) will always be called when the operation is executed.
-"all" handlers will always be called on any operation.
-<p>
+"*" handlers will always be called on any operation.
+
 The function will be called with an event object, which always contains a "type" field representing
 the event. It will have one of the names above.
 The event object includes one or more of the following cursors:<p>
@@ -2475,11 +2473,9 @@ The event object includes one or more of the following cursors:<p>
 
 Note that for a single operation - several handlers may fire. For example - for an upsert operation,
 the following handlers will fire:
-<ol>
- <li>upsert
- <li>inserted (if any items are inserted)
- <li>updated (if any items are updated)
- </ol>
+ upsert
+ inserted (if any items are inserted)
+ updated (if any items are updated)
     </div>
     
 
@@ -2615,7 +2611,7 @@ the following handlers will fire:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line811">line 811</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line808">line 808</a>
     </li></ul></dd>
     
 
@@ -2759,7 +2755,7 @@ browser, then an exception is raised.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line628">line 628</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line627">line 627</a>
     </li></ul></dd>
     
 
@@ -2903,7 +2899,7 @@ db.persist("MyData");</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line944">line 944</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line939">line 939</a>
     </li></ul></dd>
     
 
@@ -2985,7 +2981,7 @@ db.persist("MyData");</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line720">line 720</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line719">line 719</a>
     </li></ul></dd>
     
 
@@ -3096,7 +3092,7 @@ console.log("Database size is approximately", db.sizeof());</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line693">line 693</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line692">line 692</a>
     </li></ul></dd>
     
 
@@ -3214,7 +3210,7 @@ socket.send(db.toJSON());</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line745">line 745</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line744">line 744</a>
     </li></ul></dd>
     
 
@@ -3453,7 +3449,7 @@ indexes, then we UNDO all changes, reinsert the original, and throw.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1252">line 1252</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1247">line 1247</a>
     </li></ul></dd>
     
 
@@ -3660,7 +3656,7 @@ Upsert will always return a set of updated, inserted and failed cursors.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1136">line 1136</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1131">line 1131</a>
     </li></ul></dd>
     
 
@@ -3874,7 +3870,7 @@ If the new item could not be inserted, throws
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1095">line 1095</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1090">line 1090</a>
     </li></ul></dd>
     
 
@@ -3956,7 +3952,7 @@ db.upsert({a:4});  // inserts a new object</code></pre>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Sun Dec 07 2014 20:35:26 GMT+1300 (NZDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Mon Dec 08 2014 09:49:35 GMT+1300 (NZDT)
 </footer>
 
 <script> prettyPrint(); </script>

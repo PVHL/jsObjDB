@@ -612,13 +612,12 @@ ObjIndex.prototype.find = function (value) {
  *
  * @param {String}  [prim_key] A unique and required key for the data. Is optional. Note that an
  *                           internal unique field named _id is always created anyway
- *                           and can be used for unique indexing if required. Defaults to null.
+ *                           and can be used for unique indexing if required. Defaults to none.
  * @param {Boolean} [async]    Should event handlers and callbacks be called asynchronously? Defaults to false.
  *
  * @example
  * var db = jsObjDB();
  * var db2 = jsObjDB("user_id", true);
- * var db3 = jsObjDB(null, true);
  *
  */
 var jsObjDB = function (prim_key, async) {
@@ -783,28 +782,27 @@ jsObjDB.prototype.toString = function () {
  * An event handler is a method that is called on *any* change to the DB (insert, update, upsert, delete).
  *  on("&lt;event>", func(event){});
  * where "&lt;event>" is one of:
- * &lt;pre>
- *  // The operations
+ *  // the set of operations
  *  update      the update function was called. Will be passed event.updated and event.failed.
  *  upsert      the upsert function was called. Will be passed event.updated, event.inserted and event.failed
  *  insert      the insert function was called. Will be passed event.inserted and event.failed
  *  delete      the delete function was called. Will be passed event.deleted.
- *  // The changesets
+ *  // the change sets
  *  inserted    some records were inserted, however it happened(upsert or insert). Will be passed event.inserted.
  *  updated     some records were updated. Will be passed event.updated
  *  deleted     some records were deleted. Will be passed event.deleted
  *  failed      some event happened, and some records failed. Will be passed event.failed.
  *  //  wildcard - on any change operation
- *  all           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
- * &lt;/pre>
+ *  *           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
+ *
  * In all cases, the event object will also contain the name of the operation - insert, update, delete, upsert.
- * &lt;p>
+ *
  * Change set handlers (inserted, updated, deleted, failed) will *only* be called if there were actually
  * changes to the DB. 
- * &lt;p>
+ * 
  * Operation handlers (insert, update, delete, upsert) will always be called when the operation is executed.
- * "all" handlers will always be called on any operation.
- * &lt;p>
+ * "*" handlers will always be called on any operation.
+ *
  * The function will be called with an event object, which always contains a "type" field representing
  * the event. It will have one of the names above.
  * The event object includes one or more of the following cursors:&lt;p>
@@ -817,11 +815,10 @@ jsObjDB.prototype.toString = function () {
  *
  * Note that for a single operation - several handlers may fire. For example - for an upsert operation,
  * the following handlers will fire:
- * &lt;ol>
- *  &lt;li>upsert
- *  &lt;li>inserted (if any items are inserted)
- *  &lt;li>updated (if any items are updated)
- *  &lt;/ol>
+ *  upsert
+ *  inserted (if any items are inserted)
+ *  updated (if any items are updated)
+ 
  * @example
  * db.on("insert", function(event) {
  *     if (event.failed &amp;&amp; event.failed.length > 0) {
@@ -832,9 +829,9 @@ jsObjDB.prototype.toString = function () {
  *     }
  *     ...
  * });
- * @param {String}   event   The name of the event on which to attach a callback
- * @param {Function} fn      The function to call on any change
- * @param {Object}   binding The object to bind the function to. (optional - defaults to "this")
+ * @param {String} event   The name of the event on which to attach a callback
+ * @param {Function}      fn The function to call on any change
+ * @param {Object}        binding  The object to bind the function to. (optional - defaults to "this")
  */
 jsObjDB.prototype.on = function (event, fn, binding) {
     switch (event) {
@@ -873,8 +870,6 @@ jsObjDB.prototype.off = function (event) {
 /**
  * Call all event handlers, passing them information about the event. Depending on the
  * async flag on the DB, this may be done sync or async.
- * Operation events are called first, then the "all" event, then
- * the Changeset events.
  * This is an internal function.
  * @private
  * @param {Object} event A descriptor of the event. Usually an object containing a list of
@@ -922,7 +917,7 @@ jsObjDB.prototype.callHandlers = function (event) {
     }, this);
 }
 /**
- * Add an index on a single property. Access to items can be sped up
+ * Add an index on a single property. Access to items can ben sped up
  * *significantly* (although only the $in and $eq operators are currently supported).
  * &lt;p>
  * You can add indexes at any time, an attempt will be made to insert all existing elements
@@ -2012,7 +2007,7 @@ if (is_node) {
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Sun Dec 07 2014 20:35:26 GMT+1300 (NZDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Mon Dec 08 2014 09:49:35 GMT+1300 (NZDT)
 </footer>
 
 <script> prettyPrint(); </script>
