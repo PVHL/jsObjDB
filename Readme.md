@@ -520,6 +520,8 @@ If an object does not contain a property when an update is being applied to that
 
 One or more events are fired on _on every modification operation_ on a database - be it insert, update, delete or upsert. Events are not generated on find type operations (find, findOne, findWhere).
 
+[Note: event handlers used to be called delegates, but have been significantly improved. You can still use an event handler like a delegate by using the "all" event.]
+
 Event handlers are set on the jsObjDB instance using `on`:
 
 	var db = new jsObjDB("col");
