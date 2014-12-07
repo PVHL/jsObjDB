@@ -32,11 +32,11 @@
 
 
 /**
-* @fileOverview
-* @author Paul Reddy (paul@kereru.org), Scott Woods
-* @version 1
-* @requires lodash
-*/
+ * @fileOverview
+ * @author Paul Reddy (paul@kereru.org), Scott Woods
+ * @version 1
+ * @requires lodash
+ */
 
 
 "use strict";
@@ -419,8 +419,12 @@ var ObjIndex = function (property, unique, required) {
  *
  * @returns {String} JSON string representing the index properties.
  */
-ObjIndex.prototype.toJSON = function() {
-    return JSON.stringify({ unique: this.unique, required: this.required, property: this.property });
+ObjIndex.prototype.toJSON = function () {
+    return JSON.stringify({
+        unique: this.unique,
+        required: this.required,
+        property: this.property
+    });
 }
 
 /**
@@ -434,7 +438,7 @@ ObjIndex.prototype.toString = function () {
  * Return the approximate size of this index.
  * An index is made up of a map of keys, each of which points to an array of values. Each value is a reference to the DB.
  * So the size of the index does not include the size of the objects it points to.
- * 
+ *
  * @returns {Number} The approximate size, in bytes, of this object and its children.
  */
 ObjIndex.prototype.sizeof = function () {
@@ -468,7 +472,7 @@ ObjIndex.prototype.sizeof = function () {
  * array adding each item.
  * &lt;p>
  * If an exception is thrown during insertion, we attempt to remove *all* added elements from the index.
- * 
+ *
  * Watch for unique keys.
  * @param {Object} item The item (or items) to be recorded in the index.
  */
@@ -507,7 +511,7 @@ ObjIndex.prototype.addItems = function (items) {
     }, this);
 }
 /**
- * Workhorse routine for adding items to the index. 
+ * Workhorse routine for adding items to the index.
  * &lt;p>
  * Adds the item. If a new index bucket is required, then the index is getting better
  * (meaning a bigger partition number).
@@ -531,7 +535,7 @@ ObjIndex.prototype._addItemValue = function (item, value) {
 }
 /**
  * Remove an item from an index - used when that item is removed from the underlying database.
- * 
+ *
  * @param {Object} item The item that is being removed from the database
  */
 ObjIndex.prototype.removeItem = function (item) {
@@ -607,14 +611,15 @@ ObjIndex.prototype.find = function (value) {
  * A javascript storage engine for browsers and node.js.
  *
  * @param {String}  [prim_key] A unique and required key for the data. Is optional. Note that an
- *                           internal unique field named _id is always created anyway 
- *                           and can be used for unique indexing if required. Defaults to none.
- * @param {Boolean} [async]    Should delegates and callbacks be called asynchronously? Defaults to false.
- * 
+ *                           internal unique field named _id is always created anyway
+ *                           and can be used for unique indexing if required. Defaults to null.
+ * @param {Boolean} [async]    Should event handlers and callbacks be called asynchronously? Defaults to false.
+ *
  * @example
  * var db = jsObjDB();
  * var db2 = jsObjDB("user_id", true);
- *                           
+ * var db3 = jsObjDB(null, true);
+ *
  */
 var jsObjDB = function (prim_key, async) {
     this.async = async === undefined ? false : async;
@@ -628,8 +633,8 @@ var jsObjDB = function (prim_key, async) {
     this.ref_id = 0;
     //  number of items. Can't use "length" because we dont want to be seen as an array because 
     this._count = 0;
-    //  Delegates that get notified on events. They are called in the order added for each event.
-    this.delegates = [];
+    //  Event Handlers that get notified on events. They are called in the order added for each event.
+    this.event_handlers = {};
 
     if (this.prim_key) {
         this.addIndex(this.prim_key, true, true);
@@ -646,9 +651,9 @@ var jsObjDB = function (prim_key, async) {
  * ...  // store lots of data
  * db.persist("MyData");
  * @param {String} name Name used to uniquely identify this jsObjDB in the localStore
- *                      
+ *
  */
-jsObjDB.prototype.persist = function(name) {
+jsObjDB.prototype.persist = function (name) {
     if (typeof localStorage === 'undefined') {
         throw "Local storage not supported in this browser"
     }
@@ -662,27 +667,27 @@ jsObjDB.prototype.persist = function(name) {
  * @example
  * var db = jsObjDB().load("MyData");
  *
- * @param   {String} name Name used to uniquely identify this jsObjDB in the localStore. 
+ * @param   {String} name Name used to uniquely identify this jsObjDB in the localStore.
  * @returns {Object} The jsObjDB loaded. Actually just "this".
  */
-jsObjDB.prototype.load = function(name) {
+jsObjDB.prototype.load = function (name) {
     var json = localStorage[name];
     return this.loadFromJSON(json);
 }
 /**
  * Load this DB from a JSON string.
- * Not usually for user consumption - but may be useful if the DB is being 
+ * Not usually for user consumption - but may be useful if the DB is being
  * transmitted.
  * @see jsObjDB#toJSON
  * @example
  * socket.onmessage = function (evt) {
  * var db = jsObjDB().loadFromJSON(evt.data);
  * };
- * 
+ *
  * @param   {String} json JSON encoded instance of jsObjDB. Must have been created by toJSON().
  * @returns {Object} Returns "this" - the jsObjDB object.
  */
-jsObjDB.prototype.loadFromJSON = function(json) {
+jsObjDB.prototype.loadFromJSON = function (json) {
     var data = JSON.parse(json);
     //  Build the database
     this.prim_key = data.prim_key;
@@ -692,31 +697,40 @@ jsObjDB.prototype.loadFromJSON = function(json) {
     this.ref_id = 0;
     this.store = {};
     //  Add in the indexes
-    _.each(data.indexes, function(def) {
+    _.each(data.indexes, function (def) {
         this.addIndex(def.property, def.unique, def.required);
     }, this);
     //  Remove all _id fields
-    _.each(data.data, function(item) { delete item._id; });
+    _.each(data.data, function (item) {
+        delete item._id;
+    });
     this.insert(data.data);
     return this;
 }
 
 /**
- * Save the jsObjDB to a JSON string. 
+ * Save the jsObjDB to a JSON string.
  * @see jsObjDB#loadFromJSON
  * @example
  * var db = jsObjDB();
  * ...  // fill with data
  * socket.send(db.toJSON());
- * 
+ *
  * @returns {String} Returns the JSON string
  */
-jsObjDB.prototype.toJSON = function() {
-    var dbDesc = { async: this.async, prim_key: this.prim_key };
+jsObjDB.prototype.toJSON = function () {
+    var dbDesc = {
+        async: this.async,
+        prim_key: this.prim_key
+    };
     dbDesc.indexes = [];
-    
-    dbDesc.indexes = _.map(this.indexes, function(index) { 
-        return { unique: index.unique, required: index.required, property: index.property };
+
+    dbDesc.indexes = _.map(this.indexes, function (index) {
+        return {
+            unique: index.unique,
+            required: index.required,
+            property: index.property
+        };
     });
     dbDesc.data = _.values(this.store);
     return JSON.stringify(dbDesc);
@@ -733,9 +747,7 @@ jsObjDB.prototype.toJSON = function() {
  */
 jsObjDB.prototype.sizeof = function () {
     var size = 0;
-    size += 2 * 1 /* booleans */ 
-            + (this.prim_key? 2 * this.prim_key.length : 0) /* string prim key name */ 
-            + 8 * 2 /* numbers (ref_id, count) */ ;
+    size += 2 * 1 /* booleans */ + (this.prim_key ? 2 * this.prim_key.length : 0) /* string prim key name */ + 8 * 2 /* numbers (ref_id, count) */ ;
     //  Calculate the size of all indexes
     size += _.reduce(this.indexes, function (result, index) {
         return result + index.sizeof()
@@ -768,22 +780,50 @@ jsObjDB.prototype.toString = function () {
 
 
 /**
- * A delegate is a method that is called on *any* change to the DB (insert, update, upsert, delete).
- * Each delegate is recorded using a ref_id for easy deletion.
- * When called, the delegate is passed an event descriptor - with lots of information
- * about the operation that had just occurred: fn(event)&lt;p>
- * 
- * The event descriptor will include:&lt;p>
- *  type: one of "insert", "update", "upsert", "delete". &lt;p>
- * The event descriptor may include one or more cursors describing changes made to the database: &lt;p>
+ * An event handler is a method that is called on *any* change to the DB (insert, update, upsert, delete).
+ *  on("&lt;event>", func(event){});
+ * where "&lt;event>" is one of:
+ * &lt;pre>
+ *  // The operations
+ *  update      the update function was called. Will be passed event.updated and event.failed.
+ *  upsert      the upsert function was called. Will be passed event.updated, event.inserted and event.failed
+ *  insert      the insert function was called. Will be passed event.inserted and event.failed
+ *  delete      the delete function was called. Will be passed event.deleted.
+ *  // The changesets
+ *  inserted    some records were inserted, however it happened(upsert or insert). Will be passed event.inserted.
+ *  updated     some records were updated. Will be passed event.updated
+ *  deleted     some records were deleted. Will be passed event.deleted
+ *  failed      some event happened, and some records failed. Will be passed event.failed.
+ *  //  wildcard - on any change operation
+ *  all           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
+ * &lt;/pre>
+ * In all cases, the event object will also contain the name of the operation - insert, update, delete, upsert.
+ * &lt;p>
+ * Change set handlers (inserted, updated, deleted, failed) will *only* be called if there were actually
+ * changes to the DB. 
+ * &lt;p>
+ * Operation handlers (insert, update, delete, upsert) will always be called when the operation is executed.
+ * "all" handlers will always be called on any operation.
+ * &lt;p>
+ * The function will be called with an event object, which always contains a "type" field representing
+ * the event. It will have one of the names above.
+ * The event object includes one or more of the following cursors:&lt;p>
  * &lt;ul>
  *  &lt;li>inserted: all items that were inserted&lt;br>
  *  &lt;li>deleted: all items that were deleted&lt;br>
  *  &lt;li>updated: all items that were updated&lt;br>
  *  &lt;li>failed: all items that failed to be inserted or updated&lt;br>
  * &lt;/ul>
+ *
+ * Note that for a single operation - several handlers may fire. For example - for an upsert operation,
+ * the following handlers will fire:
+ * &lt;ol>
+ *  &lt;li>upsert
+ *  &lt;li>inserted (if any items are inserted)
+ *  &lt;li>updated (if any items are updated)
+ *  &lt;/ol>
  * @example
- * db.addDelegate("deleg1", function(event) {
+ * db.on("insert", function(event) {
  *     if (event.failed &amp;&amp; event.failed.length > 0) {
  *     //   There are some failures... deal with it
  *     }
@@ -792,59 +832,97 @@ jsObjDB.prototype.toString = function () {
  *     }
  *     ...
  * });
- * @param {String|Number} reg_id   An ID of this delegate. Used for quick delete
- * @param {Function}      delegate The function to call on any change
- * @param {Object}        binding  The object to bind the function to. (optional - defaults to "this")
+ * @param {String}   event   The name of the event on which to attach a callback
+ * @param {Function} fn      The function to call on any change
+ * @param {Object}   binding The object to bind the function to. (optional - defaults to "this")
  */
-jsObjDB.prototype.addDelegate = function (reg_id, delegate, binding) {
-    if (binding) {
-        this.delegates.push({
-            id: reg_id,
-            fn: _.bind(delegate, binding)
-        });
-    } else {
-        this.delegates.push({
-            id: reg_id,
-            fn: delegate
-        });
+jsObjDB.prototype.on = function (event, fn, binding) {
+    switch (event) {
+    case "update":
+    case "insert":
+    case "delete":
+    case "upsert":
+    case "updated":
+    case "inserted":
+    case "deleted":
+    case "failed":
+    case "all":
+        break;
+    default:
+        throw "Invalid event name: " + event;
     }
+    binding = binding || this;
+    fn = _.bind(fn, binding);
+    
+    //  Make sure there is a slot for this event type
+    if (!this.event_handlers[event]) {
+        this.event_handlers[event] = [];
+    }
+    this.event_handlers[event].push(fn);
+//    console.log("EVENT HANDLERS:", this.event_handlers);
 }
 /**
- * Remove a delegate function - it will no longer be called after operations. Note
- * that delegates are referenced by their ID use during addDelegate.
+ * Remove all handlers for a specific event.
  *
- * @param   {String|Number}    reg_id The reference for the delegate to be deleted.
+ * @param   {String}    event The name of the event.
  */
-jsObjDB.prototype.removeDelegate = function (reg_id) {
-    _.remove(this.delegates, function (item) {
-        return item.id === reg_id;
-    });
+jsObjDB.prototype.off = function (event) {
+    this.event_handlers[event] = [];
 }
 
 /**
- * Call all delegates, passing them information about the event. Depending on the 
+ * Call all event handlers, passing them information about the event. Depending on the
  * async flag on the DB, this may be done sync or async.
+ * Operation events are called first, then the "all" event, then
+ * the Changeset events.
  * This is an internal function.
  * @private
  * @param {Object} event A descriptor of the event. Usually an object containing a list of
  *                       inserted, deleted and updated values in Cursors.
  */
-jsObjDB.prototype.callDelegates = function (event) {
-    //  Let our delegates know that something has happened
-    _.each(this.delegates, function (delegate) {
+jsObjDB.prototype.callHandlers = function (event) {
+   // console.log("CallHandlers", event.type);
+    //  Let our operation handlers know that something has happened
+    _.each(this.event_handlers[event.type], function (handler) {
         if (this.async) {
             setTimeout(function () {
-                delegate.fn(event);
+                handler(event);
             }, 0);
         } else {
-            delegate.fn(event);
+            handler(event);
         }
     }, this);
-
+    //  Call the catchall event handler
+    if (this.event_handlers["all"] &amp;&amp; this.event_handlers["all"].length > 0) {
+        _.each(this.event_handlers["all"], function (handler) {
+            if (this.async) {
+                setTimeout(function () {
+                    handler(event);
+                }, 0);
+            } else {
+                handler(event);
+            }
+        }, this);
+    }
+    // Now let any change set handlers know that something has changed.
+    //  Note that we use the [] accessor because the changeset name may not exist.
+    _.forEach(["failed", "inserted", "updated", "deleted"], function (changeset) {
+        if (event[changeset] &amp;&amp; event[changeset].length > 0 &amp;&amp;
+            this.event_handlers[changeset] &amp;&amp; this.event_handlers[changeset].length > 0) {
+            _.each(this.event_handlers[changeset], function (handler) {
+                if (this.async) {
+                    setTimeout(function () {
+                        handler(event);
+                    }, 0);
+                } else {
+                    handler(event);
+                };
+            }, this);
+        }
+    }, this);
 }
-
 /**
- * Add an index on a single property. Access to items can ben sped up
+ * Add an index on a single property. Access to items can be sped up
  * *significantly* (although only the $in and $eq operators are currently supported).
  * &lt;p>
  * You can add indexes at any time, an attempt will be made to insert all existing elements
@@ -852,7 +930,7 @@ jsObjDB.prototype.callDelegates = function (event) {
  * &lt;p>
  * Each index keeps tabs on how much it partitions the data - more partitioning (i.e. more unique
  * values) means a more efficient index. Conversely, an index where all objects stored have the
- * same value is a very inefficient index. At query time - the best index will be 
+ * same value is a very inefficient index. At query time - the best index will be
  * chosen for use.
  *
  * @param {String}  property Name of the property
@@ -938,12 +1016,12 @@ jsObjDB.prototype.insert = function (items, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our handlers know that something has happened
+    this.callHandlers(eventInfo);
     return eventInfo;
 };
 /**
- * Insert a single object into the DB. Throws an exception on failure. 
+ * Insert a single object into the DB. Throws an exception on failure.
  * Returns the item on success with its _id set.
  * @param   {Object}   item    The object to be inserted into the DB.
  * @param   {Function} cb      Function to call after success (will be passed a full event descriptor)
@@ -968,8 +1046,8 @@ jsObjDB.prototype.insertOne = function (item, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our handlers know that something has happened
+    this.callHandlers(eventInfo);
     return item;
 
 };
@@ -1027,7 +1105,7 @@ jsObjDB.prototype._insertOne = function (item) {
  * If an item was updated, returns null (you already have a way to find the item)
  * If the new item could not be inserted, throws
  * @example
- * 
+ *
  * db.insertOne({a: 2});
  * db.upsertOne({a: 2, b: 3}); //   replaces the former object
  * var obj = db.findOne({a: 2});
@@ -1067,8 +1145,8 @@ jsObjDB.prototype.upsertOne = function (item, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our Handlers know that something has happened
+    this.callHandlers(eventInfo);
     return item;
 
 }
@@ -1120,8 +1198,8 @@ jsObjDB.prototype.upsert = function (items, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our Handlers know that something has happened
+    this.callHandlers(eventInfo);
 
     return eventInfo;
 }
@@ -1192,7 +1270,7 @@ jsObjDB.prototype._upsertOne = function (item) {
  * db.insertOne({a:1, b: {c: [1,2,3]}});
  * db.update({}, {a: { $inc: 1}, "b.c": { $push: 4 }});
  * db.find({ a: 2}); // returns: {a: 2, b: { c: [1, 2, 3, 4]}}
- * 
+ *
  * @param   {Object}   query   A query selecting a group of objects to be modified
  * @param   {Object}   changes A set of operations to apply to those objects
  * @param   {Function} cb      A callback executed with the summary of changes.
@@ -1227,8 +1305,8 @@ jsObjDB.prototype.update = function (query, changes, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our handlers know that something has happened
+    this.callHandlers(eventInfo);
 
     return eventInfo;
 };
@@ -1333,8 +1411,8 @@ jsObjDB.prototype.delete = function (query, cb, binding) {
         var f = _.bind(cb, binding);
         f(eventInfo);
     }
-    //  Let our delegates know that something has happened
-    this.callDelegates(eventInfo);
+    //  Let our handlers know that something has happened
+    this.callHandlers(eventInfo);
     return eventInfo;
 }
 /**
@@ -1616,7 +1694,7 @@ jsObjDB.parseChanges = function (query) {
  * Execute a set of changes on an object.
  * The changes will be provided in the form of a list of [["property", "op", "value], ...]
  * as created by parseChanges.
- * 
+ *
  * @static
  * @private
  * @param {Object} item       Object to be changed
@@ -1734,7 +1812,7 @@ jsObjDB.arrayOrCursor = function (obj) {
  * thereof (a[3].b[2].c). Will return "undefined" if the item does not exist.
  * Note that this can be used to parse a property string on any property,
  * not just database ones.
- * 
+ *
  * @private
  * @static
  * @param   {Object} item     The Object to be queries
@@ -1893,7 +1971,7 @@ jsObjDB.sizeOfObject = function (object) {
                 if (Object.prototype.toString.call(obj) != '[object Array]') {
                     for (var key in obj) size += 2 * key.length;
                 }
-               // loop over the keys
+                // loop over the keys
                 for (var key in obj) {
 
                     // determine whether the value has already been processed
@@ -1918,9 +1996,7 @@ jsObjDB.sizeOfObject = function (object) {
 
 if (is_node) {
     module.exports = jsObjDB;
-}
-
-</code></pre>
+}</code></pre>
         </article>
     </section>
 
@@ -1936,7 +2012,7 @@ if (is_node) {
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Thu Dec 04 2014 13:32:37 GMT+1300 (NZDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Sun Dec 07 2014 20:35:26 GMT+1300 (NZDT)
 </footer>
 
 <script> prettyPrint(); </script>

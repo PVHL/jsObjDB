@@ -17,7 +17,7 @@ Features include:
 *	async and sync support
 *	sophistocated chaining of commands
 *	Inserts, Upserts, Updates, Deletes.
-*	Delegates (callbacks) on most commands
+*	event handlers and callbacks on most operations
 
 ##	Getting Started
 
@@ -44,7 +44,7 @@ jsObjDB will also work in node.
 
 	var db = new jsObjDB()
 
-You can optionally pass in a primary key (a field that must exist, and will be uniquely indexed) and a flag to indicate whether all delegates should be asyncronous.
+You can optionally pass in a primary key (a field that must exist, and will be uniquely indexed) and a flag to indicate whether all callbacks/handlers should be asyncronous.
 
 	var async_db = new jsObjDB("myfield", true);
 	var async_db = new jsObjDB(null, true);
@@ -186,7 +186,7 @@ Data in the database is changed using one of the following calls:
 *	upsert([items]);
 *	upsertOne(item);
 
-Note that all of these calls support callbacks and delegates (see below).
+Note that all of these calls support callbacks and event handlers (see below).
 
 #### Update
 
@@ -253,7 +253,7 @@ Data can also be deleted using a cursor:
 
 	db.find({a: 1}).delete();
 	
-Note that the `db.delete` function _returns an event object_ and not a cursor. The event object is also passed to callbacks and delegates. The event object contains 1 cursor, the set of objects that were deleted, and a set of objects that failed.
+Note that the `db.delete` function _returns an event object_ and not a cursor. The event object is also passed to callbacks and event handlers. The event object contains 1 cursor, the set of objects that were deleted, and a set of objects that failed.
 	
 ## [Callbacks](id:callbacks)
 
@@ -516,36 +516,97 @@ If an object does not contain a property when an update is being applied to that
 *	$pop:   the property is created and left empty
 
 
-## Delegates
+## Event Handlers
 
-A delegate is a function that is _called on every modification operation_ on a database - be it insert, update, delete or upsert. Delegates are not called on find type operations (find, findOne, findWhere).
+One or more events are fired on _on every modification operation_ on a database - be it insert, update, delete or upsert. Events are not generated on find type operations (find, findOne, findWhere).
 
-Delegates are added to the jsObjDB instance using `addDelegate`:
+Event handlers are set on the jsObjDB instance using `on`:
 
 	var db = new jsObjDB("col");
-	db.addDelegate("id1", function(event) {
-		switch (event.type) {
-		case "insert":
-			console.log(event.inserted);
-			console.log(event.failed);
-			break;
-		case "update":
-			console.log(event.updated);
-			console.log(event.failed);
-			break;
+	on("insert", function(event) {
+		console.log(event.inserted);
+		console.log(event.failed);
+	}, this);
+	on("update", function(event) {
+		console.log(event.updated);
+		console.log(event.failed);
 		...
+	}, this);
+
+There are 2 types of events - Operation and Changeset.
+
+**Operation Events** - are events associated with an operation. These are:
+
+*	insert
+*	update
+*	upsert
+*	delete
+*	all
+
+Operation events are always called when the operation is executed, whether or not any changes occurred.
+
+For example:
+
+	var db = new jsObjDB("col");
+	db.on("insert", function(event) {
+		event.failed.each(function(item) {
+			//	Handle the fact that item failed to be inserted
+		});
+	}, this);
+	
+	db.on("all", function(event) {
+		console.log("Event type", event.type);
+		... work with event.inserted, event.failed, event.updated,
+		... event.deleted.
+	})
+
+The special operation event `all` is called on any operation.
+
+**Changeset Events** - are events associated with a set of changes to the DB. A single operation event may generate several changeset events - for example: an `upsert` operation will potentially generate some records that are _inserted_, some records that are _updated_, and some records that _failed_ to get inserted or updated (perhaps due to key voilations). 
+
+Changeset Events are _only_ called when changes actually happen, whether or not an operation occurs. This means that if an operation actually generates no changes, then the operation event will fire, and the changeset event will no.
+
+The changeset events are:
+
+*	inserted
+*	deleted
+*	updated
+*	failed - called when any operations fail.
+
+Example:
+
+	db.on("deleted", function(event) {
+		//	Cascade the deletes
+		//	Remember that the deleted event is only called when 
+		//	deletes actually happen, so event.deleted will not
+		//	be empty.
+		event.deleted.each(function(item) {
+			//	item contains an object just deleted
+			...
+		})
+	});
+
+**Async** - All event handlers honor the async flag set when the database was created.
+
+Example:
+
+	var db = new jsObjDB("col", true);	// primary key: col, async: true
+	db.on("update", function(event) {
+		//	This function will be called asynchronously.
+		if (event.failed.length > 0) {
+			//	handle the failure
 		}
 	});
 
-Delegates are called even when the operation happens through a cursor. For example - the above delegate would be called here:
+**Cursors** - Event handlers are called even when the operation happens through a cursor. For example, the above event handler would be called here:
 
 	var cursor = db.find({a: 7});
 	cursor.update({b: 7});
 
-Delegates are a good way to watch for changes to the database, and to react by cascading that change somewhere - such as to the DOM. 
+Event handlers are a good way to watch for changes to the database, and to react by cascading that change somewhere - such as to the DOM. 
 
 	var db = new jsObjDB("col");
-	db.addDelegate("id1", function(event) {
+	db.on("all", function(event) {
 		switch (event.type) {
 		case "insert":
 			//	Insert new elements into DOM
@@ -566,14 +627,3 @@ Delegates are a good way to watch for changes to the database, and to react by c
 			break;
 	}
 	
-Delegates may be configured to be called synchronously or asynchronously.
-
-	var db = new jsObjDB("col", true);	// primary key: col, async: true
-	db.addDelegate("id1", function(event) {
-		//	This function will be called asynchronously.
-		if (event.failed.length > 0) {
-			//	handle the failure
-		}
-	});
-
- 

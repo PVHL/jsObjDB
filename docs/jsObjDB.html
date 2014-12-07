@@ -113,8 +113,8 @@
             
 
             <td class="description last">A unique and required key for the data. Is optional. Note that an
-                          internal unique field named _id is always created anyway 
-                          and can be used for unique indexing if required. Defaults to none.</td>
+                          internal unique field named _id is always created anyway
+                          and can be used for unique indexing if required. Defaults to null.</td>
         </tr>
 
     
@@ -147,7 +147,7 @@
 
             
 
-            <td class="description last">Should delegates and callbacks be called asynchronously? Defaults to false.</td>
+            <td class="description last">Should event handlers and callbacks be called asynchronously? Defaults to false.</td>
         </tr>
 
     
@@ -185,7 +185,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line591">line 591</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line596">line 596</a>
     </li></ul></dd>
     
 
@@ -214,7 +214,7 @@
         
     <pre class="prettyprint"><code>var db = jsObjDB();
 var db2 = jsObjDB("user_id", true);
-                          </code></pre>
+var db3 = jsObjDB(null, true);</code></pre>
 
     
 </dd>
@@ -241,211 +241,6 @@ var db2 = jsObjDB("user_id", true);
             
 <dt>
     
-        <h4 class="name" id="addDelegate"><span class="type-signature"></span>addDelegate<span class="signature">(reg_id, delegate, binding)</span><span class="type-signature"></span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        A delegate is a method that is called on *any* change to the DB (insert, update, upsert, delete).
-Each delegate is recorded using a ref_id for easy deletion.
-When called, the delegate is passed an event descriptor - with lots of information
-about the operation that had just occurred: fn(event)<p>
-
-The event descriptor will include:<p>
- type: one of "insert", "update", "upsert", "delete". <p>
-The event descriptor may include one or more cursors describing changes made to the database: <p>
-<ul>
- <li>inserted: all items that were inserted<br>
- <li>deleted: all items that were deleted<br>
- <li>updated: all items that were updated<br>
- <li>failed: all items that failed to be inserted or updated<br>
-</ul>
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>reg_id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-|
-
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">An ID of this delegate. Used for quick delete</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>delegate</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The function to call on any change</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>binding</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object to bind the function to. (optional - defaults to "this")</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line771">line 771</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h5>Example</h5>
-        
-    <pre class="prettyprint"><code>db.addDelegate("deleg1", function(event) {
-    if (event.failed &amp;&amp; event.failed.length > 0) {
-    //   There are some failures... deal with it
-    }
-    if (event.inserted &amp;&amp; event.inserted.length > 0) {
-    //   There are some new records - add them to the DOM
-    }
-    ...
-});</code></pre>
-
-    
-</dd>
-
-        
-            
-<dt>
-    
         <h4 class="name" id="addIndex"><span class="type-signature"></span>addIndex<span class="signature">(property, unique, required)</span><span class="type-signature"></span></h4>
 
         
@@ -455,7 +250,7 @@ The event descriptor may include one or more cursors describing changes made to 
 
     
     <div class="description">
-        Add an index on a single property. Access to items can ben sped up
+        Add an index on a single property. Access to items can be sped up
 *significantly* (although only the $in and $eq operators are currently supported).
 <p>
 You can add indexes at any time, an attempt will be made to insert all existing elements
@@ -463,7 +258,7 @@ into that index. Any failure will cause the index to be discarded and an excepti
 <p>
 Each index keeps tabs on how much it partitions the data - more partitioning (i.e. more unique
 values) means a more efficient index. Conversely, an index where all objects stored have the
-same value is a very inefficient index. At query time - the best index will be 
+same value is a very inefficient index. At query time - the best index will be
 chosen for use.
     </div>
     
@@ -600,7 +395,7 @@ chosen for use.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line834">line 834</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line912">line 912</a>
     </li></ul></dd>
     
 
@@ -735,7 +530,7 @@ integer semantics for access.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1369">line 1369</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1447">line 1447</a>
     </li></ul></dd>
     
 
@@ -941,7 +736,7 @@ var itemCount = db.count({a: { $gt: 3 }}); // return count of items with a > 3;<
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1284">line 1284</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1362">line 1362</a>
     </li></ul></dd>
     
 
@@ -1103,7 +898,7 @@ db.delete({a: 4}, function(event) {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1534">line 1534</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1612">line 1612</a>
     </li></ul></dd>
     
 
@@ -1313,7 +1108,7 @@ items. That same cursor is also returned and can be used in chained calls.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1395">line 1395</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1473">line 1473</a>
     </li></ul></dd>
     
 
@@ -1498,7 +1293,7 @@ The CB also gets the ITEM. This cannot be changed.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1446">line 1446</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1524">line 1524</a>
     </li></ul></dd>
     
 
@@ -1707,7 +1502,7 @@ during function invocation. Otherwise the jsObjDB is bound.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1513">line 1513</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1591">line 1591</a>
     </li></ul></dd>
     
 
@@ -1913,7 +1708,7 @@ during function invocation. Otherwise the jsObjDB is bound.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line887">line 887</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line965">line 965</a>
     </li></ul></dd>
     
 
@@ -1981,7 +1776,7 @@ db.insert([{a:1,b:2}, {a:2}, {c:3}]); // two elements get inserted. The third fa
 
     
     <div class="description">
-        Insert a single object into the DB. Throws an exception on failure. 
+        Insert a single object into the DB. Throws an exception on failure.
 Returns the item on success with its _id set.
     </div>
     
@@ -2118,7 +1913,7 @@ Returns the item on success with its _id set.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line925">line 925</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1003">line 1003</a>
     </li></ul></dd>
     
 
@@ -2271,7 +2066,7 @@ call "load" on it - i.e. this is not a constructor.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line640">line 640</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line645">line 645</a>
     </li></ul></dd>
     
 
@@ -2346,7 +2141,7 @@ call "load" on it - i.e. this is not a constructor.
     
     <div class="description">
         Load this DB from a JSON string.
-Not usually for user consumption - but may be useful if the DB is being 
+Not usually for user consumption - but may be useful if the DB is being
 transmitted.
     </div>
     
@@ -2437,7 +2232,7 @@ transmitted.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line657">line 657</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line662">line 662</a>
     </li></ul></dd>
     
 
@@ -2496,6 +2291,366 @@ transmitted.
     <pre class="prettyprint"><code>socket.onmessage = function (evt) {
 var db = jsObjDB().loadFromJSON(evt.data);
 };</code></pre>
+
+    
+</dd>
+
+        
+            
+<dt>
+    
+        <h4 class="name" id="off"><span class="type-signature"></span>off<span class="signature">(event)</span><span class="type-signature"></span></h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Remove all handlers for a specific event.
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the event.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line841">line 841</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    
+        <h4 class="name" id="on"><span class="type-signature"></span>on<span class="signature">(event, fn, binding)</span><span class="type-signature"></span></h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        An event handler is a method that is called on *any* change to the DB (insert, update, upsert, delete).
+ on("<event>", func(event){});
+where "<event>" is one of:
+<pre>
+ // The operations
+ update      the update function was called. Will be passed event.updated and event.failed.
+ upsert      the upsert function was called. Will be passed event.updated, event.inserted and event.failed
+ insert      the insert function was called. Will be passed event.inserted and event.failed
+ delete      the delete function was called. Will be passed event.deleted.
+ // The changesets
+ inserted    some records were inserted, however it happened(upsert or insert). Will be passed event.inserted.
+ updated     some records were updated. Will be passed event.updated
+ deleted     some records were deleted. Will be passed event.deleted
+ failed      some event happened, and some records failed. Will be passed event.failed.
+ //  wildcard - on any change operation
+ all           on any event. Will be passed event.inserted, event.updated, event.deleted, event.failed.
+</pre>
+In all cases, the event object will also contain the name of the operation - insert, update, delete, upsert.
+<p>
+Change set handlers (inserted, updated, deleted, failed) will *only* be called if there were actually
+changes to the DB. 
+<p>
+Operation handlers (insert, update, delete, upsert) will always be called when the operation is executed.
+"all" handlers will always be called on any operation.
+<p>
+The function will be called with an event object, which always contains a "type" field representing
+the event. It will have one of the names above.
+The event object includes one or more of the following cursors:<p>
+<ul>
+ <li>inserted: all items that were inserted<br>
+ <li>deleted: all items that were deleted<br>
+ <li>updated: all items that were updated<br>
+ <li>failed: all items that failed to be inserted or updated<br>
+</ul>
+
+Note that for a single operation - several handlers may fire. For example - for an upsert operation,
+the following handlers will fire:
+<ol>
+ <li>upsert
+ <li>inserted (if any items are inserted)
+ <li>updated (if any items are updated)
+ </ol>
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the event on which to attach a callback</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The function to call on any change</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>binding</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The object to bind the function to. (optional - defaults to "this")</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line811">line 811</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>db.on("insert", function(event) {
+    if (event.failed &amp;&amp; event.failed.length > 0) {
+    //   There are some failures... deal with it
+    }
+    if (event.inserted &amp;&amp; event.inserted.length > 0) {
+    //   There are some new records - add them to the DOM
+    }
+    ...
+});</code></pre>
 
     
 </dd>
@@ -2604,7 +2759,7 @@ browser, then an exception is raised.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line623">line 623</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line628">line 628</a>
     </li></ul></dd>
     
 
@@ -2641,140 +2796,6 @@ browser, then an exception is raised.
     <pre class="prettyprint"><code>var db = jsObjDB();
 ...  // store lots of data
 db.persist("MyData");</code></pre>
-
-    
-</dd>
-
-        
-            
-<dt>
-    
-        <h4 class="name" id="removeDelegate"><span class="type-signature"></span>removeDelegate<span class="signature">(reg_id)</span><span class="type-signature"></span></h4>
-
-        
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Remove a delegate function - it will no longer be called after operations. Note
-that delegates are referenced by their ID use during addDelegate.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>reg_id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-|
-
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The reference for the delegate to be deleted.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line790">line 790</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
 
     
 </dd>
@@ -2882,7 +2903,7 @@ that delegates are referenced by their ID use during addDelegate.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line866">line 866</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line944">line 944</a>
     </li></ul></dd>
     
 
@@ -2964,7 +2985,7 @@ that delegates are referenced by their ID use during addDelegate.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line706">line 706</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line720">line 720</a>
     </li></ul></dd>
     
 
@@ -3075,7 +3096,7 @@ console.log("Database size is approximately", db.sizeof());</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line686">line 686</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line693">line 693</a>
     </li></ul></dd>
     
 
@@ -3193,7 +3214,7 @@ socket.send(db.toJSON());</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line733">line 733</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line745">line 745</a>
     </li></ul></dd>
     
 
@@ -3432,7 +3453,7 @@ indexes, then we UNDO all changes, reinsert the original, and throw.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1174">line 1174</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1252">line 1252</a>
     </li></ul></dd>
     
 
@@ -3639,7 +3660,7 @@ Upsert will always return a set of updated, inserted and failed cursors.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1058">line 1058</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1136">line 1136</a>
     </li></ul></dd>
     
 
@@ -3853,7 +3874,7 @@ If the new item could not be inserted, throws
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1017">line 1017</a>
+        <a href="jsobjdb.js.html">jsobjdb.js</a>, <a href="jsobjdb.js.html#line1095">line 1095</a>
     </li></ul></dd>
     
 
@@ -3935,7 +3956,7 @@ db.upsert({a:4});  // inserts a new object</code></pre>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Thu Dec 04 2014 13:32:37 GMT+1300 (NZDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha10</a> on Sun Dec 07 2014 20:35:26 GMT+1300 (NZDT)
 </footer>
 
 <script> prettyPrint(); </script>
