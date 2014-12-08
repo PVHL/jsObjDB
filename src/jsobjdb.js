@@ -24,6 +24,28 @@ if (is_node) {
 /******************************************************************************************/
 
 /**
+ * A DBEvent is created in response to some modification to the DB.
+ * It holds information related to that change in a set of cursors.
+ * Each cursor may be null (unusued), empty (no changes) or contain values.
+ * <p>
+ * The event also contains the event type in the 'type' property.
+ * @class
+ * @param {[[Type]]} type [[Description]]
+ */
+var DBEvent = function (type, inserted, updated, deleted, failed) {
+    if (!type) {
+        throw "Invalid event type"
+    }
+    this.type = type;
+    this.inserted = inserted ? inserted : null;
+    this.updated = updated ? updated : null;
+    this.deleted = deleted ? deleted : null;
+    this.failed = failed ? failed : null;
+}
+
+/******************************************************************************************/
+
+/**
  * A Cursor object contains a list of items selected from an jsObjDB.
  * It usually contains only references to the set of objects.
  * Cursor object is designed for walking (using _.each, or the built in .each)
@@ -351,7 +373,7 @@ Cursor.prototype.indexOf = function (query) {
  * <p>
  * E.g. item = { a: 1, b: [1, 2, 3]}.
  * <p>
- * Create an index on "b" means that we can use a query like {b: 3}, whereby we are looking
+ * Create an index on "b" means that we can use a query like {b: { $contains: 3}}, whereby we are looking
  * for items where b contains 3.
  * <p>
  * Indexes are only created by the jsObjDB class, and it manages a set of indexes for a given
@@ -386,7 +408,7 @@ var ObjIndex = function (property, unique, required) {
 /**
  * Convert the description of an index to JSON for storage.
  * <p>
- * Note that we dont usually store index data - instead we rebuild the index during load.
+ * Note that we dont usually persist index data - instead we rebuild the index during load.
  * Therefore we only need to store the index properties.
  *
  * @returns {String} JSON string representing the index properties.
@@ -822,13 +844,13 @@ jsObjDB.prototype.on = function (event, fn, binding) {
     }
     binding = binding || this;
     fn = _.bind(fn, binding);
-    
+
     //  Make sure there is a slot for this event type
     if (!this.event_handlers[event]) {
         this.event_handlers[event] = [];
     }
     this.event_handlers[event].push(fn);
-//    console.log("EVENT HANDLERS:", this.event_handlers);
+    //    console.log("EVENT HANDLERS:", this.event_handlers);
 }
 /**
  * Remove all handlers for a specific event.
@@ -848,7 +870,7 @@ jsObjDB.prototype.off = function (event) {
  *                       inserted, deleted and updated values in Cursors.
  */
 jsObjDB.prototype.callHandlers = function (event) {
-   // console.log("CallHandlers", event.type);
+    // console.log("CallHandlers", event.type);
     //  Let our operation handlers know that something has happened
     _.each(this.event_handlers[event.type], function (handler) {
         if (this.async) {
@@ -961,31 +983,25 @@ jsObjDB.prototype.insert = function (items, cb, binding) {
     if (!jsObjDB.arrayOrCursor(items)) {
         throw "insert requires an array of objects";
     }
-    var inserted = new Cursor(this);
-    var failed = new Cursor();
+    var event = new DBEvent("insert", new Cursor(this), null, null, new Cursor());
     var len = items.length;
     for (var i = 0; i < len; i++) {
         try {
             this._insertOne(items[i]);
-            inserted.push(items[i]);
+            event.inserted.push(items[i]);
         } catch (e) {
-            failed.push(items[i]);
+            event.failed.push(items[i]);
         }
     }
-    var eventInfo = {
-        type: "insert",
-        inserted: inserted,
-        failed: failed
-    };
     //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our handlers know that something has happened
-    this.callHandlers(eventInfo);
-    return eventInfo;
+    this.callHandlers(event);
+    return event;
 };
 /**
  * Insert a single object into the DB. Throws an exception on failure.
@@ -1001,20 +1017,16 @@ jsObjDB.prototype.insertOne = function (item, cb, binding) {
     }
     this._insertOne(item);
 
-    var eventInfo = {
-        type: "insert",
-        inserted: new Cursor(this),
-        failed: new Cursor()
-    };
-    eventInfo.inserted.push(item);
+    var event = new DBEvent("insert", new Cursor(this), null, null, new Cursor());
+    event.inserted.push(item);
     //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our handlers know that something has happened
-    this.callHandlers(eventInfo);
+    this.callHandlers(event);
     return item;
 
 };
@@ -1064,7 +1076,8 @@ jsObjDB.prototype._insertOne = function (item) {
  * <p>
  * It is possible that the insert or update will fail because it violates
  * some other key. In which case the original item is restored, and
- * an exception will be thrown.
+ * an exception will be thrown. Note that failed is used here - either
+ * the upsert works or an exception is thrown.
  * <p>
  * Items are searched for using the _id field (if present) or the primary key.
  * <p>
@@ -1095,25 +1108,20 @@ jsObjDB.prototype.upsertOne = function (item, cb, binding) {
     var type = ret[0];
     var item = ret[1];
 
-    var eventInfo = {
-        type: "upsert",
-        inserted: new Cursor(this),
-        updated: new Cursor(this),
-        failed: new Cursor()
-    };
+    var event = new DBEvent("upsert", new Cursor(this), new Cursor(this), null, new Cursor());
     if (type === "insert") {
-        eventInfo.inserted.push(item);
+        event.inserted.push(item);
     } else {
-        eventInfo.updated.push(item);
+        event.updated.push(item);
     }
     //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our Handlers know that something has happened
-    this.callHandlers(eventInfo);
+    this.callHandlers(event);
     return item;
 
 }
@@ -1132,9 +1140,7 @@ jsObjDB.prototype.upsert = function (items, cb, binding) {
     if (!jsObjDB.arrayOrCursor(items)) {
         throw "Upsert requires an array of items";
     }
-    var inserted = new Cursor(this);
-    var updated = new Cursor(this);
-    var failed = new Cursor();
+    var event = new DBEvent("upsert", new Cursor(this), new Cursor(this), null, new Cursor());
     var len = items.length;
     for (var i = 0; i < len; i++) {
         var item = items[i];
@@ -1144,31 +1150,25 @@ jsObjDB.prototype.upsert = function (items, cb, binding) {
             item = ret[1];
             // TODO: there is confusion upsertOne returns item for insert and update.
             if (type === "insert") {
-                inserted.push(item);
+                event.inserted.push(item);
             } else {
-                updated.push(item);
+                event.updated.push(item);
             }
         } catch (e) {
-            failed.push(item);
+            event.failed.push(item);
             //console.log("Failure of upsert", e);
         }
     }
-    var eventInfo = {
-        type: "upsert",
-        inserted: inserted,
-        updated: updated,
-        failed: failed
-    };
     //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our Handlers know that something has happened
-    this.callHandlers(eventInfo);
+    this.callHandlers(event);
 
-    return eventInfo;
+    return event;
 }
 /**
  * Update an item in the database, using the _id, then primary key.
@@ -1247,35 +1247,29 @@ jsObjDB.prototype._upsertOne = function (item) {
 jsObjDB.prototype.update = function (query, changes, cb, binding) {
     var changeList = jsObjDB.parseChanges(changes);
     var set = this.find(query);
-    var updated = new Cursor(this);
-    var failed = new Cursor(this);
+    var event = new DBEvent("update", null, new Cursor(this), null, new Cursor());
     var set_len = set.length;
     //    console.log("Update: set length", set.length, "Changees", changeList);
     for (var i = 0; i < set_len; i++) {
         var item = set [i];
         try {
             var ret = this._updateOne(item, changeList);
-            updated.push(ret);
+            event.updated.push(ret);
         } catch (e) {
             //            console.log("Failed update", e);
-            failed.push(item);
+            event.failed.push(item);
         }
     }
-    var eventInfo = {
-        type: "update",
-        updated: updated,
-        failed: failed
-    };
     //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our handlers know that something has happened
-    this.callHandlers(eventInfo);
+    this.callHandlers(event);
 
-    return eventInfo;
+    return event;
 };
 
 /**
@@ -1368,19 +1362,16 @@ jsObjDB.prototype.delete = function (query, cb, binding) {
             idx.removeItem(item);
         }, this);
     };
-    var eventInfo = {
-            type: "delete",
-            deleted: deleted,
-        }
+    var event = new DBEvent("delete", null, null, deleted, null);
         //  Now do callback
     if (cb) {
         binding = binding || this;
         var f = _.bind(cb, binding);
-        f(eventInfo);
+        f(event);
     }
     //  Let our handlers know that something has happened
-    this.callHandlers(eventInfo);
-    return eventInfo;
+    this.callHandlers(event);
+    return event;
 }
 /**
  * Walk the given query array looking for the best index to use.
