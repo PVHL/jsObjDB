@@ -1,23 +1,24 @@
-# Obj DB
+# jsObjDB
 
 ## Overview
 
-The jsObjDB - a noSQL query storage system, with a query structure loosly based on Mongo. It can be used synchronously or asyncronously, and is very fast and flexible.
+jsObjDB is a noSQL data storage system for the browser, with a query structure loosly based on Mongo. It support synchronous or async operation, is very fast and flexible, and stores any type of object.
 
-An jsObjDB stores any type of object - but it is generally more efficient to store one type of object per jsObjDB (indexes can be better utilized). All fields are optional.
+jsObjDB works in the browser _and_ in Node.js/io.js.
 
 Features include:
 
 *	flexible queries
-*	array support
-*	joins
-*	indexes (on properties, array, sub-objects)
-*	cursors that also act like arrays
-*	flexible update mechanisms.
-*	async and sync support
+*	indexes
 *	sophistocated chaining of commands
-*	Inserts, Upserts, Updates, Deletes.
+*	cursors that also act like arrays
+*	array and sub-object support for queries/indexes
+*	joins
+*	flexible update mechanisms
+*	async and sync support
+*	Inserts, Upserts, Updates, Deletes
 *	event handlers and callbacks on most operations
+*	persistance (to LocalStorage in the browser)
 
 ##	Getting Started
 
@@ -37,14 +38,14 @@ or
 
 Your project must include either lodash or underscore - they are used by the library.
 
-jsObjDB will also work in node.
-
 
 ### Creating a DB
 
+Create a new database by calling the constructor:
+
 	var db = new jsObjDB()
 
-You can optionally pass in a primary key (a field that must exist, and will be uniquely indexed) and a flag to indicate whether all callbacks/handlers should be asyncronous.
+You can optionally pass in a primary key (a field that must exist, and will be uniquely indexed) and a flag to indicate whether all callbacks/handlers should be asyncronous. 
 
 	var async_db = new jsObjDB("myfield", true);
 	var async_db = new jsObjDB(null, true);
@@ -172,7 +173,7 @@ To find all objects with an element greater than some number:
 	
 	//	Searching on a field from within an array:
 	var cursor = db.find({ "a.b[3]": { $in: ["a", "b", 4]}});
-	//	results
+	//	Results for different objects:
 	{ a: 5 }				//	no match. a is not an object
 	{ a: { b: 5 }}			//	no match. a.b is not an array
 	{ a: { b: [1, 2] }}		//	no match. a.b[3] does not exist
@@ -488,7 +489,7 @@ Examples:
 	db.find().update({ a: {$dec: 5}});
 	
 	//	Set a.b to "hello" for all objects
-	db.find().update({ a: {$set: "hello"}});
+	db.find().update({ "a.b": {$set: "hello"}});
 
 	//	Set a.b[7] to "hello" for all objects
 	db.find().update({ "a.b[7]": {$set: "hello"}});
@@ -518,7 +519,7 @@ If an object does not contain a property when an update is being applied to that
 
 ## Event Handlers
 
-One or more events are fired on _on every modification operation_ on a database - be it insert, update, delete or upsert. Events are not generated on find type operations (find, findOne, findWhere).
+One or more events are fired on _on every modification_ to a database - be it insert, update, delete or upsert. Events are not generated on find type operations (find, findOne, findWhere).
 
 [Note: event handlers used to be called delegates, but have been significantly improved. You can still use an event handler like a delegate by using the "all" event.]
 
@@ -537,17 +538,19 @@ Event handlers are set on the jsObjDB instance using `on`:
 
 There are 2 types of events - Operation and Changeset.
 
-**Operation Events** - are events associated with an operation. These are:
+### Operation Events
+
+Operation events associated with an operation - one of:
 
 *	insert
 *	update
 *	upsert
 *	delete
-*	all
+*	all - will be called on all operations
 
 Operation events are always called when the operation is executed, whether or not any changes occurred.
 
-For example:
+Examples:
 
 	var db = new jsObjDB("col");
 	db.on("insert", function(event) {
@@ -564,9 +567,11 @@ For example:
 
 The special operation event `all` is called on any operation.
 
-**Changeset Events** - are events associated with a set of changes to the DB. A single operation event may generate several changeset events - for example: an `upsert` operation will potentially generate some records that are _inserted_, some records that are _updated_, and some records that _failed_ to get inserted or updated (perhaps due to key voilations). 
+### Changeset Events
 
-Changeset Events are _only_ called when changes actually happen, whether or not an operation occurs. This means that if an operation actually generates no changes, then the operation event will fire, and the changeset event will no.
+Changeset events are associated with a set of changes to the DB. A single operation event may generate several changeset events - for example: an `upsert` operation will potentially generate some records that are _inserted_, some records that are _updated_, and some records that _failed_ to get inserted or updated (perhaps due to key voilations). Therefore up to 3 changeset events may execute. 
+
+Changeset Events are _only_ called when changes actually happen, whether or not an operation occurs. This means that if an operation actually generates no changes, then the operation event will fire, and the changeset event will not.
 
 The changeset events are:
 
@@ -588,7 +593,9 @@ Example:
 		})
 	});
 
-**Async** - All event handlers honor the async flag set when the database was created.
+### Async Events
+
+All event handlers honor the async flag set when the database was created.
 
 Example:
 
@@ -600,7 +607,9 @@ Example:
 		}
 	});
 
-**Cursors** - Event handlers are called even when the operation happens through a cursor. For example, the above event handler would be called here:
+### Cursor Events
+
+Event handlers are called even when the operation happens through a cursor, although it is the underlying Database's event handler that is called. For example, the above event handler would be called here:
 
 	var cursor = db.find({a: 7});
 	cursor.update({b: 7});
