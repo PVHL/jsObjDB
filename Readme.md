@@ -2,7 +2,7 @@
 
 ## Overview
 
-jsObjDB is a noSQL data storage system for the browser, with a query structure loosly based on Mongo. It support synchronous or async operation, is very fast and flexible, and stores any type of object.
+jsObjDB is a noSQL database for the browser, with a query structure loosly based on Mongo. It support synchronous or async operation, event handlers, join, and is very fast and flexible.
 
 jsObjDB works in the browser _and_ in Node.js/io.js.
 
@@ -76,7 +76,7 @@ There are two main ways to insert data - `insertOne` and `insert`.
 	var obj = db.insertOne({ key: "hi" }); //	fine
 	var obj = db.insertOne({ key: "hi" }); //	exception - duplicate
 	
-`insert` takes an array of objects, and will _not_ throw an exception on failure. Instead it will insert as many objects as possible, and return information about the results via a pair of cursors - `event.inserted` (successes) and `event.failed` (falures).
+`insert` takes an array of objects, and will _not_ throw an exception on failure. Instead it will insert as many objects as possible, and return information about the results via a DBEvent object, which contains a pair of cursors - `inserted` (successes) and `failed` (falures).
 
 	var db = new jsObjDB("key");
 	var arr = [];
